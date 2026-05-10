@@ -1,0 +1,101 @@
+/*
+ * SectionHeader — scroll-linked motion for label → title → subtitle.
+ * States driven by `.inView` on the wrapper (see `SectionHeader.jsx` + `useInView`).
+ */
+
+.header {
+  margin-bottom: 3.5rem;
+}
+
+.header.center {
+  text-align: center;
+}
+
+.header.center .section-subtitle {
+  margin: 0 auto;
+}
+
+/* ── Shared motion ── */
+.label,
+.title,
+.subtitle {
+  will-change: opacity, transform, filter, clip-path;
+  transition-duration: 0.62s;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Exit / off-screen: quick, synced (no stagger) */
+.header:not(.inView) .label,
+.header:not(.inView) .title,
+.header:not(.inView) .subtitle {
+  transition-delay: 0ms;
+}
+
+/* ── Label: slight rise + fade ── */
+.label {
+  display: inline-block;
+  transition-property: opacity, transform, letter-spacing;
+}
+
+.header:not(.inView) .label {
+  opacity: 0;
+  transform: translate3d(0, 14px, 0);
+  letter-spacing: 0.26em;
+}
+
+.header.inView .label {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  letter-spacing: 0.18em;
+  transition-delay: 0.04s;
+}
+
+/* ── Title: clip reveal + soft lift (editorial) ── */
+.title {
+  transition-property: opacity, transform, clip-path, filter;
+}
+
+.header:not(.inView) .title {
+  opacity: 0;
+  transform: translate3d(0, 22px, 0) scale(0.985);
+  clip-path: inset(0 100% 0 0);
+  filter: blur(6px);
+}
+
+.header.inView .title {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  clip-path: inset(0 0% 0 0);
+  filter: blur(0);
+  transition-delay: 0.1s;
+}
+
+/* ── Subtitle: delayed fade + rise ── */
+.subtitle {
+  transition-property: opacity, transform;
+}
+
+.header:not(.inView) .subtitle {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+}
+
+.header.inView .subtitle {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition-delay: 0.2s;
+}
+
+/* ── Reduced motion: keep typography, drop motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .label,
+  .title,
+  .subtitle {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+    filter: none !important;
+    letter-spacing: 0.18em !important;
+    transition: none !important;
+  }
+}

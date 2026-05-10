@@ -1,0 +1,230 @@
+/*
+ * Contact.module.css — link cards column + large CTA panel with radial glow.
+ *
+ * The outer `.grid` fades/slides in when `.visible` is applied from `useInView` in `Contact.jsx`.
+ * `.color_*` classes only tweak hover border + icon tint on each contact card.
+ */
+
+.section {
+  background: var(--bg-secondary);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 2rem;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.grid.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Contact cards ── */
+.contactCards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.contactCard {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition), transform var(--transition);
+}
+
+/* Gentle rightward nudge on hover to suggest "click to open" */
+.contactCard:hover {
+  transform: translateX(4px);
+}
+
+/* Per-variant hover border tints — colour matches the icon inside .contactIcon */
+.color_default:hover { border-color: var(--border-hover); }
+.color_accent:hover  { border-color: var(--accent); }
+.color_green:hover   { border-color: rgba(0, 217, 163, 0.4); }
+.color_orange:hover  { border-color: rgba(255, 140, 90, 0.4); }
+
+.contactIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+/* Tint the icon inside each card to match its variant colour */
+.color_accent .contactIcon { color: var(--accent); }
+.color_green  .contactIcon { color: var(--green); }
+.color_orange .contactIcon { color: var(--orange); }
+
+.contactInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.contactLabel {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.contactValue {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  transition: color var(--transition);
+}
+
+a.contactValue:hover { color: var(--accent); }
+
+.emailActions {
+  /* Layout for obfuscated label + copy button in the email card. */
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.copyEmailBtn {
+  /* Small utility button so copy action is visible but secondary to primary CTA. */
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  padding: 0.3rem 0.55rem;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition), background var(--transition);
+}
+
+.copyEmailBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent-bright);
+  background: var(--accent-dim);
+}
+
+/* ── CTA Panel ── */
+.ctaPanel {
+  position: relative;
+  padding: 2.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+/* Decorative radial bloom behind the CTA panel content */
+.ctaGlow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 60% at 80% 20%, var(--accent-dim), transparent);
+  pointer-events: none;
+}
+
+/* z-index: 1 keeps copy above the non-interactive .ctaGlow layer */
+.ctaContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.availablePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: var(--green);
+  width: fit-content;
+}
+
+/* pulse-glow keyframe defined in globals.css */
+.availableDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.ctaTitle {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.ctaBody {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.75;
+}
+
+.ctaButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.btnPrimary {
+  /* Styled as a button because email launch is handled by JS click handler. */
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background var(--transition), box-shadow var(--transition);
+}
+
+.btnPrimary:hover {
+  background: var(--accent-bright);
+  box-shadow: 0 0 24px var(--accent-glow);
+}
+
+/* Ghost-style secondary — LinkedIn link; defers visually to the primary email button */
+.btnSecondary {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: border-color var(--transition), color var(--transition), background var(--transition);
+}
+
+.btnSecondary:hover {
+  border-color: var(--accent);
+  color: var(--accent-bright);
+  background: var(--accent-dim);
+}
+
+/* ── Responsive ── */
+@media (max-width: 820px) {
+  .grid { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,424 @@
+/*
+ * Experience.module.css — vertical timeline, spine icon, role header, highlights, and project links.
+ *
+ * Layout: each `.card` is a 2-column grid — a narrow 56 px spine (icon + line) and a fluid content column.
+ * `useInView` in ExperienceCard toggles `.visible` to fade/slide each card in on scroll.
+ *
+ * Colour conventions:
+ * - Green  → live tools, GitHub chips, current-role pill
+ * - Orange → live-tool CTA buttons and credentials labels
+ * - Accent → summary border, tenure badge, specialism text
+ */
+
+/* Matches the hero background so the section blends into page flow */
+.section {
+  background: var(--bg-primary);
+}
+
+/* ── Timeline ── */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+/* ── Card: spine + content ── */
+.card {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 0 1.5rem;
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+/* Toggled by useInView — triggers the fade-up entrance animation */
+.card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Spine ── */
+.spine {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 0.15rem;
+}
+
+.spineIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-hover);
+  background: var(--accent-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-bright);
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+/* flex: 1 grows the line to fill space between the icon and the card bottom; min-height prevents collapse on short cards */
+.spineLine {
+  width: 1.5px;
+  flex: 1;
+  background: linear-gradient(to bottom, var(--border-hover), transparent);
+  margin-top: 6px;
+  min-height: 40px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .card {
+    grid-template-columns: 40px 1fr;
+    gap: 0 1rem;
+  }
+
+  .spineIcon {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* ── Content ── */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0 0 2rem;
+}
+
+/* ── Role header: title → specialisms → company+pills → period → location ── */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+/* Green pulsing pill — only rendered when exp.current is true */
+.currentPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--green);
+  background: var(--green-dim);
+  border: 1px solid rgba(0, 217, 163, 0.22);
+  padding: 0.22rem 0.7rem;
+  border-radius: 99px;
+}
+
+/* pulse-glow keyframe defined in globals.css */
+.currentDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 7px var(--green);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Neutral pill for employment type (e.g. "Full-time", "Contract") */
+.typePill {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  padding: 0.22rem 0.7rem;
+  border-radius: 99px;
+}
+
+.role {
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 2.5vw, 1.65rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.specialisms {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--accent-bright);
+  letter-spacing: 0.04em;
+}
+
+/* Line 1 (after specialisms): Company name · pills */
+.companyRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.45rem;
+}
+
+.company {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.companyLink {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: var(--border-hover);
+  cursor: pointer;
+  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+}
+
+.companyLink:hover {
+  color: var(--accent-bright);
+  text-decoration-color: var(--accent-bright);
+}
+
+.companyLink:focus-visible {
+  outline: 2px solid var(--accent-bright);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.divider {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* Line 2: Period · tenure */
+.periodRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.period {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Tenure: computed dynamically, inline after period */
+.tenure {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--accent-bright);
+  background: var(--accent-dim);
+  border: 1px solid rgba(108, 99, 255, 0.2);
+  padding: 0.1rem 0.5rem;
+  border-radius: 99px;
+  letter-spacing: 0.04em;
+}
+
+/* Line 3: Location · work arrangement */
+.locationRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* Map-pin icon + country name */
+.location {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Remote / Hybrid / On-site label */
+.workArrangement {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Shown below the company row when a company was renamed/acquired mid-tenure */
+.companyNote {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  letter-spacing: 0.03em;
+  margin-top: 0.1rem;
+}
+
+/* ── Summary ── */
+.summary {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  max-width: 700px;
+  padding: 1.1rem 1.25rem;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-dim);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+/* ── Highlights ── */
+.highlights {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+/* Shared mono eyebrow label above highlights, GitHub links, and live tools */
+.highlightsLabel {
+  font-family: var(--font-mono);
+  font-size: 0.67rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.highlightsList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.highlightItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+/* margin-top: 3px optically aligns the icon with the text cap-height */
+.checkIcon {
+  color: var(--green);
+  flex-shrink: 0;
+  margin-top: 3px;
+  display: flex;
+}
+
+/* ── Shared project link section (live tools + work repos) ── */
+.projectLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.linkRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+/* GitHub repo buttons — match green "Work Project" styling */
+.ghLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 0.48rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0, 217, 163, 0.2);
+  background: var(--green-dim);
+  color: var(--green);
+  transition: border-color var(--transition), color var(--transition), background var(--transition), transform var(--transition);
+}
+
+/* border-color uses a brighter lime-green on hover to signal interactivity */
+.ghLink:hover {
+  border-color: rgba(120, 255, 79, 0.7);
+  color: var(--green);
+  background: var(--green-dim);
+  transform: translateY(-1px);
+}
+
+/* Live GAS tool buttons — orange accent */
+.liveLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.48rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 140, 90, 0.28);
+  background: var(--orange-dim);
+  color: var(--orange);
+  transition: background var(--transition), border-color var(--transition), color var(--transition), transform var(--transition);
+}
+
+.liveLink:hover {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* pulse-glow keyframe defined in globals.css */
+.liveDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Wraps the live link + optional credential hint as a single column unit */
+.liveToolBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+/* Compact LOGIN row shown beneath a live tool link when credentials exist */
+.liveCreds {
+  margin: 0;
+  padding-left: 0.2rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+}
+
+/* "LOGIN:" label in orange to flag these as demo credentials */
+.liveCredsLabel {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  color: var(--orange);
+}
+
+/* Shared orange tint for user/key inline icons in the credential row */
+.credsIcon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--orange);
+}
+
+/* Accent-highlighted inline tokens for the username and password values */
+.liveCreds code {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  color: var(--accent-bright);
+  background: var(--accent-dim);
+  padding: 0.04em 0.28em;
+  border-radius: 4px;
+}
+
+/* ── Skill tags ── */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}

@@ -1,0 +1,178 @@
+/*
+ * About.module.css — two-column About section: narrative + stats/interest stack.
+ *
+ * Scroll animation: `.grid` starts with children offset/opaque; when `About.jsx` adds
+ * `.visible` (from `useInView`), `.narrative` slides from the left and `.aside` from the right.
+ * `prefers-reduced-motion` collapses transition duration to near-instant.
+ */
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+}
+
+/* ── Narrative ── */
+.narrative {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  opacity: 0;
+  transform: translateX(-40px);
+  transition: opacity 0.65s ease, transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.grid.visible .narrative {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.narrative p {
+  color: var(--text-secondary);
+  line-height: 1.8;
+  font-size: 0.975rem;
+}
+
+.narrative strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.tag {
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  color: var(--accent-bright);
+  background: var(--accent-dim);
+  padding: 0.1em 0.45em;
+  border-radius: 4px;
+}
+
+.socialRow {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.socialLink {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+  transition: color var(--transition);
+}
+
+.socialLink:hover { color: var(--accent-bright); }
+
+/* ── Aside (stats + interests): enter from right ── */
+.aside {
+  opacity: 0;
+  transform: translateX(40px);
+  transition: opacity 0.65s ease 0.1s, transform 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.1s;
+}
+
+.grid.visible .aside {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ── Stats ── */
+.statsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  text-align: center;
+  transition: border-color var(--transition), transform var(--transition);
+}
+
+.statCard:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.statValue {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--accent-bright);
+  line-height: 1;
+}
+
+.statLabel {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 0.35rem;
+}
+
+/* ── Interest cards ── */
+.interestGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.interestCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 0.9rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.interestCard:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-card-hover);
+}
+
+.interestIcon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.interestTitle {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.2rem;
+}
+
+.interestDesc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+/* ── Responsive ── */
+@media (prefers-reduced-motion: reduce) {
+  .narrative,
+  .aside {
+    transition-duration: 0.01ms;
+    transition-delay: 0s;
+  }
+}
+
+@media (max-width: 860px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+}

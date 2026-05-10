@@ -1,0 +1,237 @@
+/* ============================================================
+   GLOBALS — Paul Tumabini Portfolio
+   ============================================================
+   Purpose:
+   - Reset + base typography/colour for `body`.
+   - Design tokens on `:root` (default dark palette) and overrides on `[data-theme="light"]`
+     (set by `ThemeContext` on `<html>`). Components should prefer `var(--*)` over hard-coded hex.
+   - Shared layout helpers (`.container`, `.section*`) and reusable keyframes (`fadeUp`, etc.)
+     imported implicitly by section CSS modules and global class names.
+   - Subtle `body::before` noise overlay and scrollbar/selection styling for polish.
+   ============================================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* ── Dark Theme (default) ── */
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #111118;
+  --bg-card: #14141e;
+  --bg-card-hover: #1a1a28;
+  --bg-glass: rgba(20, 20, 30, 0.7);
+
+  --text-primary: #f0f0ff;
+  --text-secondary: #9090b0;
+  --text-muted: #5a5a7a;
+
+  --accent: #6c63ff;
+  --accent-bright: #8b83ff;
+  --accent-dim: rgba(108, 99, 255, 0.15);
+  --accent-glow: rgba(108, 99, 255, 0.35);
+
+  --green: #00d9a3;
+  --green-dim: rgba(0, 217, 163, 0.12);
+  --orange: #ff8c5a;
+  --orange-dim: rgba(255, 140, 90, 0.12);
+
+  --border: rgba(255, 255, 255, 0.07);
+  --border-hover: rgba(122, 115, 250, 0.70);
+
+  --nav-bg: rgba(10, 10, 15, 0.85);
+  --shadow-card: 0 4px 32px rgba(0, 0, 0, 0.45);
+  --shadow-glow: 0 0 40px rgba(108, 99, 255, 0.2);
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 32px;
+
+  --font-display: 'Syne', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --font-body: 'DM Sans', sans-serif;
+
+  --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Hero circuit canvas — opacity + grid stroke colours (read by canvas + CSS) */
+  --hero-circuit-opacity: 0.42;
+  --hero-grid-line: rgba(255, 255, 255, 0.055);
+  --hero-grid-line-mid: rgba(108, 99, 255, 0.14);
+
+  --scroll-bar-bg:rgba(107, 99, 255, 0.60);
+}
+
+[data-theme="light"] {
+  --bg-primary: #f5f5ff;
+  --bg-secondary: #ededfa;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f0f0ff;
+  --bg-glass: rgba(255, 255, 255, 0.75);
+
+  --text-primary: #0d0d1a;
+  --text-secondary: #4a4a6a;
+  --text-muted: #8888aa;
+
+  --accent: #5549e8;
+  --accent-bright: #6c63ff;
+  --accent-dim: rgba(85, 73, 232, 0.1);
+  --accent-glow: rgba(85, 73, 232, 0.25);
+
+  --green: #00b389;
+  --green-dim: rgba(0, 179, 137, 0.1);
+  --orange: #e8703f;
+  --orange-dim: rgba(232, 112, 63, 0.1);
+
+  --border: rgba(0, 0, 0, 0.08);
+  --border-hover: rgba(85, 73, 232, 0.35);
+
+  --nav-bg: rgba(245, 245, 255, 0.88);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.1);
+  --shadow-glow: 0 0 40px rgba(85, 73, 232, 0.12);
+
+  --hero-circuit-opacity: 0.44;
+  --hero-grid-line: rgba(85, 73, 232, 0.14);
+  --hero-grid-line-mid: rgba(0, 179, 137, 0.12);
+
+  --scroll-bar-bg:rgba(107, 99, 255, 0.40);
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+  transition: background-color var(--transition-slow), color var(--transition);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb {
+  background: var(--scroll-bar-bg);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ── Selection ── */
+::selection {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ── Utility ── */
+.container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.section {
+  padding: 7rem 0;
+}
+
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.75rem;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--text-primary);
+  margin-bottom: 1.25rem;
+}
+
+.section-subtitle {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  max-width: 580px;
+  line-height: 1.7;
+}
+
+/* ── Noise overlay for depth ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.025;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ── Animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px var(--accent-glow); }
+  50%       { box-shadow: 0 0 40px var(--accent-glow), 0 0 80px var(--accent-dim); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.7s ease forwards;
+}
+
+/* ── Focus visible ── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Button reset ── */
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img { display: block; max-width: 100%; }

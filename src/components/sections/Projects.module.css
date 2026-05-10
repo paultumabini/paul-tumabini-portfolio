@@ -1,0 +1,386 @@
+/*
+ * Projects.module.css — filter pill row, responsive card grid, featured styling, GitHub CTA.
+ *
+ * Cards start translated down + transparent; `Projects.jsx` toggles `.visible` per card when
+ * `useInView` fires so each tile animates on its own timeline (stagger via inline `transitionDelay`).
+ *
+ * New projects added in `portfolio.js` (e.g. scraping stacks with only `link`) reuse `.card` + `.featured`;
+ * category-specific rules (e.g. `.gasCard`) key off `project.category` in JSX, not per-repo class names.
+ */
+
+/* ── Filter pill row — wraps on narrow viewports; active pill fills with accent ── */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.filterBtn {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 0.45rem 1.1rem;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  background: transparent;
+  transition: all var(--transition);
+}
+
+.filterBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent-bright);
+  background: var(--accent-dim);
+}
+
+/* !important overrides .filterBtn:hover so the active pill stays white-on-accent while hovered */
+.filterActive {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff !important;
+}
+
+/* ── Grid ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 3rem;
+}
+
+/* ── Card ── */
+.card {
+  position: relative;
+  padding: 1.6rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease,
+    border-color var(--transition),
+    box-shadow var(--transition);
+}
+
+/* `useInView` in ProjectCard toggles this class; opacity + transform animate together */
+.card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.card:hover {  
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-card);
+}
+
+/* Purple tint distinguishes featured cards from regular ones at a glance */
+.featured {
+  border-color: rgba(108, 99, 255, 0.3);
+}
+
+/* Small pill in the top-left badge row for featured projects */
+.featuredMark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-bright);
+  background: var(--accent-dim);
+  padding: 0.2rem 0.65rem;
+  border-radius: 99px;
+  width: fit-content;
+}
+
+/* Top row: badge group (left) + icon buttons (right) */
+.cardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.cardTitle {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.35;
+}
+
+/* Legacy standalone external-link icon — kept for backward compatibility */
+.externalLink {
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  transition:
+    color var(--transition),
+    border-color var(--transition),
+    background var(--transition);
+  flex-shrink: 0;
+}
+
+.externalLink:hover {
+  color: var(--accent-bright);
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* flex: 1 lets the description stretch to fill remaining card height before tags push to bottom */
+.cardDesc {
+  font-size: 0.83rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  flex: 1;
+}
+
+/* margin-top: auto pushes tags to the card bottom regardless of description length */
+.cardTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: auto;
+}
+
+/* ── GitHub CTA ── */
+.githubCta {
+  text-align: center;
+}
+
+.githubBtn {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+  padding: 0.75rem 1.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  display: inline-block;
+  transition:
+    border-color var(--transition),
+    background var(--transition),
+    color var(--transition);
+}
+
+.githubBtn:hover {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent-bright);
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 580px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── GAS Web App card — orange tint signals a deployed Google Apps Script project ── */
+.gasCard {
+  border-color: rgba(216, 90, 48, 0.28);
+}
+
+.gasCard:hover {
+  border-color: rgba(216, 90, 48, 0.75);
+  box-shadow: 0 8px 32px rgba(216, 90, 48, 0.1);
+}
+
+/* ── Card top: badge row + icon row ── */
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Green pill shown when badge starts with "Live" — matches the pulsing dot colour */
+.liveMark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--green);
+  background: var(--green-dim);
+  border: 1px solid rgba(0, 217, 163, 0.2);
+  padding: 0.2rem 0.65rem;
+  border-radius: 99px;
+  width: fit-content;
+}
+
+/* Glowing dot inside liveMark; pulse-glow keyframes defined in globals */
+.liveDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: pulse-glow 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+/* ── Icon buttons (top-right of card) ── */
+
+/* flex-shrink: 0 prevents icons from squashing when the badge row is long */
+.linkIcons {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+/* Shared base for all icon buttons (GitHub, live, video); colour overrides per variant below */
+.iconBtn {
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  transition:
+    color var(--transition),
+    border-color var(--transition),
+    background var(--transition);
+  flex-shrink: 0;
+}
+
+/* Default hover: accent purple — used by the GitHub icon */
+.iconBtn:hover {
+  color: var(--accent-bright);
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* Live-app icon overrides default purple hover with green to match the liveMark pill */
+.liveBtn:hover {
+  color: var(--green);
+  border-color: rgba(0, 217, 163, 0.4);
+  background: var(--green-dim);
+}
+
+/* YouTube red — only applied on hover so it doesn't visually compete with live/GitHub icons at rest */
+.videoBtn:hover {
+  color: #ff4444;
+  border-color: rgba(255, 68, 68, 0.4);
+  background: rgba(255, 68, 68, 0.08);
+}
+
+/* ── Credentials pill ── */
+.credsPill {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* margin-top: 2px nudges the key icon into optical alignment with the text baseline */
+.credsPill svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--orange);
+}
+
+/* Inline code highlights username/password values inside the credentials pill */
+.credsPill code {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--accent-bright);
+  background: var(--accent-dim);
+  padding: 0.05em 0.35em;
+  border-radius: 3px;
+}
+
+/* ── CTA button row — sits at the card bottom; flex-wrap handles narrow cards on mobile ── */
+.ctaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+/* ── Live demo CTA button ── */
+.demoBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--orange-dim);
+  border: 1px solid rgba(255, 140, 90, 0.3);
+  color: var(--orange);
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    color var(--transition),
+    transform var(--transition);
+}
+
+/* Fills solid orange on hover for a stronger "open app" call-to-action */
+.demoBtn:hover {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* ── Watch demo (YouTube) CTA — mirrors demoBtn shape but uses YouTube red palette ── */
+.watchBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1rem;
+  border-radius: var(--radius-md);
+  background: rgba(255, 68, 68, 0.08);
+  border: 1px solid rgba(255, 68, 68, 0.3);
+  color: #ff4444;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    color var(--transition),
+    transform var(--transition);
+}
+
+/* Fills solid red on hover to match YouTube brand on interaction */
+.watchBtn:hover {
+  background: #ff4444;
+  border-color: #ff4444;
+  color: #fff;
+  transform: translateY(-1px);
+}

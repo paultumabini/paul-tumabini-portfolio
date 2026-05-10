@@ -2,7 +2,7 @@
 
 Personal portfolio site built with **React** and **Vite**: dark/light theme, responsive navigation, scroll-spy, filterable projects, and content driven from a single data file.
 
-**Live site:** 
+**Live site:** [paul-tumabini-portfolio.vercel.app](https://paul-tumabini-portfolio.vercel.app/)
 
 ---
 
@@ -82,7 +82,7 @@ This is a static SPA after `npm run build` (output in `dist/`). Common options:
 | [Vercel](https://vercel.com/) | Free tier; good for Vite projects |
 | [GitHub Pages](https://pages.github.com/) | Free for public repos; if the site is served from a **project** URL (`username.github.io/repo-name/`), set `base` in `vite.config.js` to `'/repo-name/'` and use a Pages action or deploy the `dist` contents |
 
-After deployment, update the **Live site** link at the top of this README.
+If your production URL changes, update the **Live site** link at the top of this README.
 
 ---
 

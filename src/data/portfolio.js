@@ -171,7 +171,7 @@ export const projects = [
     tags: ['JavaScript', 'HTML5', 'CSS3', 'Finance Logic'],
     category: 'webapp',
     link: 'https://github.com/paultumabini/vehicle-lease-calculator',
-    liveLink: 'https://vehicle-lease-calculator.vercel.app/',
+    liveLink: 'https://leasecalculator-black.vercel.app/',
     featured: true,
     badge: 'Live · Work Project',
   },
@@ -287,7 +287,7 @@ export const experiences = [
       },
       {
         label: 'Vehicle Lease Calculator',
-        url: 'https://vehicle-lease-calculator.vercel.app/',
+        url: 'https://leasecalculator-black.vercel.app/',
       },
     ],
     workProjects: [

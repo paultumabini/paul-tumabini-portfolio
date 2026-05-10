@@ -156,7 +156,7 @@ export const projects = [
       'Dashboard',
     ],
     category: ['gaswebapp', 'webapp'],
-    link: 'https://github.com/paultumabini/vdm',
+    link: 'https://github.com/paultumabini/vehicle-data-monitoring',
     liveLink:
       'https://script.google.com/macros/s/AKfycbwsvDezT1ZB9RGJqlueIUG_I0K_aFXda0mfVy01lknpqLUzr0PhB0T8xk2oWWO8Gz_qow/exec',
     featured: true,
@@ -165,13 +165,13 @@ export const projects = [
   },
   {
     id: 4,
-    title: 'Lease Calculator Web App',
+    title: 'Vehicle Lease Calculator',
     description:
       'Clean HTML/JS lease payment calculator for vehicles. Computes monthly payments from principal, interest, residual value, and term — with live result updates.',
     tags: ['JavaScript', 'HTML5', 'CSS3', 'Finance Logic'],
     category: 'webapp',
-    link: 'https://github.com/paultumabini/lease-calculator',
-    liveLink: 'https://leasecalculator.netlify.app/',
+    link: 'https://github.com/paultumabini/vehicle-lease-calculator',
+    liveLink: 'https://vehicle-lease-calculator.vercel.app/',
     featured: true,
     badge: 'Live · Work Project',
   },
@@ -281,13 +281,13 @@ export const experiences = [
     ],
     liveProjects: [
       {
-        label: 'Vehicle Data Monitor',
+        label: 'Vehicle Data Monitoring',
         url: 'https://script.google.com/macros/s/AKfycbwsvDezT1ZB9RGJqlueIUG_I0K_aFXda0mfVy01lknpqLUzr0PhB0T8xk2oWWO8Gz_qow/exec',
         credentials: { user: 'testuser', pass: 'testing123' },
       },
       {
-        label: 'Lease Calculator',
-        url: 'https://leasecalculator.netlify.app/',
+        label: 'Vehicle Lease Calculator',
+        url: 'https://vehicle-lease-calculator.vercel.app/',
       },
     ],
     workProjects: [

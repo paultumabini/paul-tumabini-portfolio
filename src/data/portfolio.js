@@ -216,7 +216,7 @@ export const projects = [
     category: ['webapp', 'python'],
     link: 'https://github.com/paultumabini/taskaai-frontend',
     liveLink: 'https://taskaai.vercel.app',
-    videoLink: 'https://youtu.be/YOUR_VIDEO_ID', // replace with your YouTube video ID once uploaded
+    videoLink: 'https://youtu.be/OPR4z7EIAMg', 
     featured: true,
     badge: 'Live · Full-Stack',
     credentials: { user: 'testuser', pass: 'testuser123' },

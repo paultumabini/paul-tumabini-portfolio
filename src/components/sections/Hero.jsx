@@ -192,15 +192,15 @@ export default function Hero() {
     const PULSE_COLOR_V = 'rgba(0, 217, 163,'
     const RGB_H = '108, 99, 255'
     const RGB_V = '0, 217, 163'
-    /** Caps branching pulses to avoid unbounded growth / performance drops. */
-    const MAX_PULSES = 18
+    /** Caps branching pulses; lower = calmer hero (reading-first). */
+    const MAX_PULSES = 14
     /**
      * Pixels per second along wires (time-based for consistent pacing on any display refresh rate).
      * 60Hz reference: px/frame ≈ SPEED_PX_PER_SEC / 60 — e.g. 50 ≈ ~0.83 px/frame at 60Hz.
      */
     const SPEED_PX_PER_SEC = 50
-    /** Fork attempts per second near intersections; scaled by dt so rate stays ~same at any FPS. */
-    const FORK_RATE_PER_SEC = 0.24
+    /** Fork attempts/s near intersections (× dt/attempt); lower = fewer branches. Was 0.24 (≈ 0.004/frame@60Hz). */
+    const FORK_RATE_PER_SEC = 0.16
     /**
      * Max simulated time per frame. Too low (e.g. 50ms) makes motion *lose* progress whenever the
      * main thread skips frames (load, GC, throttling) so it feels fine at first then “slows down”.
@@ -270,61 +270,103 @@ export default function Hero() {
       }
     }
 
-    /** Initial traffic density; each pulse may fork later at intersections. */
-    const pulses = Array.from({ length: 6 }, makePulse)
+    /** Initial pulse count; fewer = less visual noise above the fold. */
+    const pulses = Array.from({ length: 5 }, makePulse)
 
     /** Soft bloom + strokes on adjacent grid lines so light travels along the mesh. */
     function drawSurroundingWireGlow(ctx, px, py, horiz) {
       const rgb = horiz ? RGB_H : RGB_V
-      const snapX = Math.round(px / CELL) * CELL
-      const snapY = Math.round(py / CELL) * CELL
+      // TUNE: bloom radius around pulse on wires (bigger = wider soft halo)
       const spread = CELL * 2.5
 
       ctx.save()
       ctx.globalCompositeOperation = 'lighter'
 
       const rg = ctx.createRadialGradient(px, py, 0, px, py, spread)
-      rg.addColorStop(0, `rgba(${rgb}, 0.24)`)
-      rg.addColorStop(0.4, `rgba(${rgb}, 0.07)`)
+      // TUNE: radial brightness (each stop’s alpha) and falloff shape (0…1 positions along radius)
+      rg.addColorStop(0, `rgba(${rgb}, 0.22)`)
+      rg.addColorStop(0.35, `rgba(${rgb}, 0.12)`)
+      rg.addColorStop(0.65, `rgba(${rgb}, 0.045)`)
       rg.addColorStop(1, 'rgba(0,0,0,0)')
       ctx.fillStyle = rg
       ctx.fillRect(px - spread, py - spread, spread * 2, spread * 2)
 
-      ctx.lineCap = 'round'
-      for (let dist = 1; dist <= 2; dist++) {
-        const alpha = 0.12 / dist
-        ctx.strokeStyle = `rgba(${rgb}, ${alpha})`
-        ctx.lineWidth = 1.5 + dist * 0.4
-        ctx.shadowBlur = 8 + dist * 5
-        ctx.shadowColor = `rgba(${rgb}, 0.5)`
-        if (horiz) {
-          for (const ox of [-CELL * dist, 0, CELL * dist]) {
-            ctx.beginPath()
-            ctx.moveTo(snapX + ox, snapY - CELL * 1.25)
-            ctx.lineTo(snapX + ox, snapY + CELL * 1.25)
-            ctx.stroke()
-          }
-          for (const oy of [-CELL * dist, CELL * dist]) {
-            ctx.beginPath()
-            ctx.moveTo(snapX - CELL * 1.25, snapY + oy)
-            ctx.lineTo(snapX + CELL * 1.25, snapY + oy)
-            ctx.stroke()
-          }
-        } else {
-          for (const oy of [-CELL * dist, 0, CELL * dist]) {
-            ctx.beginPath()
-            ctx.moveTo(snapX - CELL * 1.25, snapY + oy)
-            ctx.lineTo(snapX + CELL * 1.25, snapY + oy)
-            ctx.stroke()
-          }
-          for (const ox of [-CELL * dist, CELL * dist]) {
-            ctx.beginPath()
-            ctx.moveTo(snapX + ox, snapY - CELL * 1.25)
-            ctx.lineTo(snapX + ox, snapY + CELL * 1.25)
-            ctx.stroke()
+      /**
+       * TUNE handoff: `g` — lower (e.g. 0.5) = softer longer crossfade mid-cell;
+       * higher (e.g. 0.75) = quicker handoff to the forward intersection.
+       */
+      const handoff = (fr) => {
+        const x = Math.max(0, Math.min(1, fr))
+        const g = 0.62
+        return { rear: Math.pow(1 - x, g), forward: Math.pow(x, g) }
+      }
+
+      /**
+       * One “node” glow at a grid intersection (centerX, centerY), scaled 0..1.
+       * Parallel lines ahead/behind the pulse travel feel blended via two weighted nodes.
+       */
+      function strokeBundle(centerX, centerY, strength) {
+        // TUNE: skip faint strokes; lower = draw weaker tail longer (slightly costlier)
+        if (strength < 0.008) return
+        ctx.lineCap = 'round'
+        // TUNE: `dist` runs 1..2 — increase upper bound (e.g. 3) to light farther grid rings (costlier)
+        for (let dist = 1; dist <= 2; dist++) {
+          // TUNE: mesh stroke brightness; base 0.12 / dist — raise for brighter lines
+          const alpha = (0.12 / dist) * strength
+          ctx.strokeStyle = `rgba(${rgb}, ${alpha})`
+          // TUNE: line thickness vs distance from center node
+          ctx.lineWidth = 1.5 + dist * 0.4
+          // TUNE: blur per ring — raise 8 / 5 for a softer, wider line glow
+          ctx.shadowBlur = 8 + dist * 5
+          // TUNE: shadow glow (0.5 scales with strength)
+          ctx.shadowColor = `rgba(${rgb}, ${0.5 * strength})`
+          if (horiz) {
+            // TUNE: segment half-length `CELL * 1.25` on every moveTo/lineTo in this bundle
+            for (const ox of [-CELL * dist, 0, CELL * dist]) {
+              ctx.beginPath()
+              ctx.moveTo(centerX + ox, centerY - CELL * 1.25)
+              ctx.lineTo(centerX + ox, centerY + CELL * 1.25)
+              ctx.stroke()
+            }
+            for (const oy of [-CELL * dist, CELL * dist]) {
+              ctx.beginPath()
+              ctx.moveTo(centerX - CELL * 1.25, centerY + oy)
+              ctx.lineTo(centerX + CELL * 1.25, centerY + oy)
+              ctx.stroke()
+            }
+          } else {
+            for (const oy of [-CELL * dist, 0, CELL * dist]) {
+              ctx.beginPath()
+              ctx.moveTo(centerX - CELL * 1.25, centerY + oy)
+              ctx.lineTo(centerX + CELL * 1.25, centerY + oy)
+              ctx.stroke()
+            }
+            for (const ox of [-CELL * dist, CELL * dist]) {
+              ctx.beginPath()
+              ctx.moveTo(centerX + ox, centerY - CELL * 1.25)
+              ctx.lineTo(centerX + ox, centerY + CELL * 1.25)
+              ctx.stroke()
+            }
           }
         }
       }
+
+      if (horiz) {
+        const railY = Math.round(py / CELL) * CELL
+        const cellX = Math.floor(px / CELL) * CELL
+        const fr = (px - cellX) / CELL
+        const { rear, forward } = handoff(fr)
+        strokeBundle(cellX, railY, rear)
+        strokeBundle(cellX + CELL, railY, forward)
+      } else {
+        const railX = Math.round(px / CELL) * CELL
+        const cellY = Math.floor(py / CELL) * CELL
+        const fr = (py - cellY) / CELL
+        const { rear, forward } = handoff(fr)
+        strokeBundle(railX, cellY, rear)
+        strokeBundle(railX, cellY + CELL, forward)
+      }
+
       ctx.shadowBlur = 0
       ctx.restore()
     }

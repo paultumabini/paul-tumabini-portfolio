@@ -194,7 +194,7 @@ export default function Hero() {
     /** Caps branching pulses to avoid unbounded growth / performance drops. */
     const MAX_PULSES = 18
     /** Movement speed in px per frame; higher = faster pulse travel across wires. */
-    const SPEED = 1.4
+    const SPEED = 1.1
 
     /** Cached geometry computed on resize and reused every frame. */
     let cols = 0
@@ -408,13 +408,13 @@ export default function Hero() {
         // Leading dot: fixed-size soft halo (radial fill) + small solid core; no time-based pulse.
         const rgbHead = p.horiz ? '139,131,255' : '0,245,190'
         const rgbGlow = p.horiz ? '108,99,255' : '0,217,163'
-        const haloR = 14 // outer radius of the head glow in CSS pixels
+        const haloR = 17 // outer radius of the head glow in CSS pixels
 
         ctx.save()
         ctx.globalCompositeOperation = 'lighter' // stack light on the grid without muddying darks
         const halo = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, haloR)
-        halo.addColorStop(0, `rgba(${rgbHead},0.49)`) // bright center of the halo
-        halo.addColorStop(0.4, `rgba(${rgbGlow},0.19)`)
+        halo.addColorStop(0, `rgba(${rgbHead},0.52)`) // bright center of the halo
+        halo.addColorStop(0.4, `rgba(${rgbGlow},0.24)`)
         halo.addColorStop(1, 'rgba(0,0,0,0)') // transparent edge
         ctx.fillStyle = halo
         ctx.beginPath()
@@ -422,9 +422,9 @@ export default function Hero() {
         ctx.fill()
         ctx.restore()
 
-        ctx.fillStyle = `rgba(${rgbHead},0.96)` // crisp cap on the moving line
-        ctx.shadowColor = `rgba(${rgbGlow},0.9)`
-        ctx.shadowBlur = 20 // soft drop shadow reads as steady bloom, not animation
+        ctx.fillStyle = `rgba(${rgbHead},0.98)` // crisp cap on the moving line
+        ctx.shadowColor = `rgba(${rgbGlow},0.92)`
+        ctx.shadowBlur = 24 // soft drop shadow reads as steady bloom, not animation
         ctx.beginPath()
         ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2)
         ctx.fill()

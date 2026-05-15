@@ -117,8 +117,9 @@ export default function Hero() {
   const rafRef = useRef(null)
 
   /**
-   * Typewriter loop: after an initial delay, types one character every `typeMs` until the end,
-   * pauses, then resets and repeats. Cleans up all timers on unmount or dependency change.
+   * Typewriter loop: calm pacing — ~36ms base between chars, extra beat after punctuation /
+   * newlines, longer idle before restart. Chained timeouts (not a fixed interval) so delays
+   * can vary. Cleans up on unmount.
    */
   useEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -127,12 +128,21 @@ export default function Hero() {
       return
     }
 
-    const typeMs = 22
-    const pauseAfterFullMs = 2800
+    const baseTypeMs = 36
+    const pauseAfterFullMs = 4200
+
+    /** Extra ms after “heavy” glyphs so the eye can rest on line / clause boundaries. */
+    const extraAfterReveal = (cell) => {
+      if (!cell) return 0
+      const ch = cell.ch
+      if (ch === '\n') return 150
+      if ('.,:;}'.includes(ch)) return 85
+      return 0
+    }
 
     const clearTimers = () => {
       if (intervalRef.current != null) {
-        clearInterval(intervalRef.current)
+        clearTimeout(intervalRef.current)
         intervalRef.current = null
       }
       if (pauseRef.current != null) {
@@ -144,18 +154,24 @@ export default function Hero() {
     const runCycle = () => {
       setTypedLen(0)
       let n = 0
-      intervalRef.current = window.setInterval(() => {
+
+      const tick = () => {
         n += 1
         setTypedLen(n)
         if (n >= codeLen) {
-          clearInterval(intervalRef.current)
           intervalRef.current = null
           pauseRef.current = window.setTimeout(() => {
             pauseRef.current = null
             runCycle()
           }, pauseAfterFullMs)
+          return
         }
-      }, typeMs)
+        const last = codeRun[n - 1]
+        const wait = baseTypeMs + extraAfterReveal(last)
+        intervalRef.current = window.setTimeout(tick, wait)
+      }
+
+      intervalRef.current = window.setTimeout(tick, baseTypeMs)
     }
 
     pauseRef.current = window.setTimeout(runCycle, 700)

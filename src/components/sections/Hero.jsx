@@ -13,7 +13,7 @@ import styles from './Hero.module.css'
 
 const HERO_CODE_SNIPPET = `import scrapy
 
-class SpiderPT(scrapy.Spider):
+class PaulSpider(scrapy.Spider):
     name = "paul"
     
     def parse(self, response):
@@ -70,7 +70,7 @@ function buildHighlightedRun(source) {
       if (KW.has(word)) kind = 'kw'
       else if (word === 'self') kind = 'self_kw'
       else if (word === 'parse') kind = 'fun'
-      else if (word === 'SpiderPT' || word === 'Spider') kind = 'cls'
+      else if (word === 'PaulSpider' || word === 'Spider') kind = 'cls'
       else if (word === 'scrapy') kind = 'mod'
       for (const ch of Array.from(word)) run.push({ ch, kind })
       i = j
@@ -177,6 +177,7 @@ export default function Hero() {
    * - Opacity of the whole layer: `--hero-circuit-opacity` (same file).
    * - Pulses draw a radial bloom + short strokes on neighbouring grid paths so the glow “runs”
    *   along the wires, not only on the moving segment.
+   * - Pulse travel uses elapsed time (px/s), not px/frame, so high-Hz phones keep the same pace as 60Hz.
    */
   useEffect(() => {
     const canvas = canvasRef.current
@@ -193,8 +194,18 @@ export default function Hero() {
     const RGB_V = '0, 217, 163'
     /** Caps branching pulses to avoid unbounded growth / performance drops. */
     const MAX_PULSES = 18
-    /** Movement speed in px per frame; higher = faster pulse travel across wires. */
-    const SPEED = 1.1
+    /**
+     * Pixels per second along wires (time-based for consistent pacing on any display refresh rate).
+     * 60Hz reference: px/frame ≈ SPEED_PX_PER_SEC / 60 — e.g. 50 ≈ ~0.83 px/frame at 60Hz.
+     */
+    const SPEED_PX_PER_SEC = 50
+    /** Fork attempts per second near intersections; scaled by dt so rate stays ~same at any FPS. */
+    const FORK_RATE_PER_SEC = 0.24
+    /**
+     * Max simulated time per frame. Too low (e.g. 50ms) makes motion *lose* progress whenever the
+     * main thread skips frames (load, GC, throttling) so it feels fine at first then “slows down”.
+     */
+    const MAX_DT_SEC = 0.25
 
     /** Cached geometry computed on resize and reused every frame. */
     let cols = 0
@@ -241,6 +252,9 @@ export default function Hero() {
     const ro = new ResizeObserver(resize)
     ro.observe(canvas)
 
+    /** @type {number | null} */
+    let lastFrameTimeMs = null
+
     /** Spawn one pulse entering from left edge (horizontal) or top edge (vertical). */
     const makePulse = () => {
       const horiz = Math.random() > 0.5
@@ -250,8 +264,6 @@ export default function Hero() {
         /** Start at edge and travel inward along one axis only. */
         x: horiz ? 0 : col * CELL,
         y: horiz ? row * CELL : 0,
-        dx: horiz ? SPEED : 0,
-        dy: horiz ? 0 : SPEED,
         horiz,
         /** Trail length in pixels (2-5 cells) so pulses vary organically. */
         len: CELL * (2 + Math.random() * 3),
@@ -346,34 +358,44 @@ export default function Hero() {
       }
     }
 
-    const draw = () => {
+    /**
+     * @param {number} nowMs — DOMHighResTimeStamp from requestAnimationFrame; used for FPS-independent motion.
+     */
+    const draw = (nowMs) => {
       const ctx = canvas.getContext('2d')
       if (!ctx || w === 0) {
         /** Retry next frame until canvas has measurable size and 2D context is ready. */
         rafRef.current = requestAnimationFrame(draw)
         return
       }
+      let dtSec = 0
+      if (lastFrameTimeMs != null) {
+        /** Avoid under-counting motion when frames are irregular; tab focus reset limits huge jumps. */
+        dtSec = Math.min((nowMs - lastFrameTimeMs) / 1000, MAX_DT_SEC)
+      }
+      lastFrameTimeMs = nowMs
+      const stepPx = SPEED_PX_PER_SEC * dtSec
+      const nearIntersectPx = Math.max(stepPx * 2, 2)
+
       /** Full-frame redraw for deterministic layering: grid -> glow -> pulse head/trail. */
       ctx.clearRect(0, 0, w, h)
       drawGradientGrid(ctx)
 
       for (const p of pulses) {
-        /** Move pulse one time-step; speed is controlled by `SPEED`. */
-        p.x += p.dx
-        p.y += p.dy
+        /** Move pulse by elapsed time; speed is `SPEED_PX_PER_SEC`. */
+        if (p.horiz) p.x += stepPx
+        else p.y += stepPx
 
         if (
           pulses.length < MAX_PULSES &&
-          /** Small chance per frame to branch at near-grid intersections. */
-          Math.random() < 0.004 &&
-          p.x % CELL < SPEED * 2 &&
-          p.y % CELL < SPEED * 2
+          /** Chance scales with dt so high refresh rates don’t spawn extra forks. */
+          Math.random() < FORK_RATE_PER_SEC * dtSec &&
+          p.x % CELL < nearIntersectPx &&
+          p.y % CELL < nearIntersectPx
         ) {
           /** Fork at current location and switch axis to create network-like flow. */
           const fork = { ...makePulse(), x: p.x, y: p.y }
           fork.horiz = !p.horiz
-          fork.dx = fork.horiz ? SPEED : 0
-          fork.dy = fork.horiz ? 0 : SPEED
           pulses.push(fork)
         }
 
@@ -462,15 +484,25 @@ export default function Hero() {
     }
 
     if (!reduced) {
+      /** After a tab is hidden, rAF can resume with a huge gap — skip that delta so we don’t spike or stall. */
+      const onVisibilityChange = () => {
+        if (document.visibilityState === 'visible') lastFrameTimeMs = null
+      }
+      document.addEventListener('visibilitychange', onVisibilityChange)
+
       /** Start animated mode. */
       rafRef.current = requestAnimationFrame(draw)
-    } else {
-      /** Start static mode (no frame loop). */
-      drawStaticGrid()
+
+      return () => {
+        document.removeEventListener('visibilitychange', onVisibilityChange)
+        cancelAnimationFrame(rafRef.current)
+        ro.disconnect()
+        themeObserver.disconnect()
+      }
     }
 
+    drawStaticGrid()
     return () => {
-      /** Cleanup observers/RAF to prevent leaks on unmount. */
       cancelAnimationFrame(rafRef.current)
       ro.disconnect()
       themeObserver.disconnect()

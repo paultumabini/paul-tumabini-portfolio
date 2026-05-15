@@ -2,7 +2,7 @@
 
 Personal portfolio site built with **React** and **Vite**: dark/light theme, responsive navigation, scroll-spy, filterable projects, and content driven from a single data file.
 
-**Live site:** [paul-tumabini-portfolio.vercel.app](https://paul-tumabini-portfolio.vercel.app/)
+**Live site:** [paultumabini.dev](https://paultumabini.dev/)
 
 ---
 

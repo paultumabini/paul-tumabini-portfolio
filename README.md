@@ -1,4 +1,4 @@
-# Paul Tumabini — Developer Portfolio
+# Paul Tumabini | Developer Portfolio
 
 Personal portfolio site built with **React** and **Vite**: dark/light theme, responsive navigation, scroll-spy, filterable projects, and content driven from a single data file.
 

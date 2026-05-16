@@ -117,9 +117,8 @@ export default function Hero() {
   const rafRef = useRef(null)
 
   /**
-   * Typewriter loop: calm pacing — ~36ms base between chars, extra beat after punctuation /
-   * newlines, longer idle before restart. Chained timeouts (not a fixed interval) so delays
-   * can vary. Cleans up on unmount.
+   * Typewriter loop: sport mode — quick cadence (still readable at a glance), tight pauses at
+   * punctuation / newlines, short idle before repeat; glyphs use `codeCharIn` in Hero.module.css.
    */
   useEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -128,15 +127,15 @@ export default function Hero() {
       return
     }
 
-    const baseTypeMs = 36
-    const pauseAfterFullMs = 4200
+    const baseTypeMs = 16
+    const pauseAfterFullMs = 2400
 
-    /** Extra ms after “heavy” glyphs so the eye can rest on line / clause boundaries. */
+    /** Micro-pauses so fast typing doesn’t feel like one block of noise */
     const extraAfterReveal = (cell) => {
       if (!cell) return 0
       const ch = cell.ch
-      if (ch === '\n') return 150
-      if ('.,:;}'.includes(ch)) return 85
+      if (ch === '\n') return 48
+      if ('.,:;}'.includes(ch)) return 28
       return 0
     }
 

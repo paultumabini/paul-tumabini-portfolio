@@ -346,6 +346,20 @@
   overflow: hidden;
 }
 
+/* Newly mounted spans only re-run this when extended; keeps motion subtle vs. hard pops */
+.codeBlock span:not(.codeCursor) {
+  animation: codeCharIn 0.09s cubic-bezier(0.2, 0.9, 0.35, 1) both;
+}
+
+@keyframes codeCharIn {
+  from {
+    transform: translateY(0.08em);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
 /* Dracula token colours */
 .codeBlock .tok_kw      { color: #ff79c6; }
 .codeBlock .tok_str     { color: #f1fa8c; }
@@ -374,6 +388,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .codeCursor { animation: none; opacity: 0.85; }
+  .codeBlock span:not(.codeCursor) { animation: none; }
 }
 
 /* ── Animated scroll indicator ── */

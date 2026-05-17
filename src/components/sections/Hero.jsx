@@ -6,6 +6,9 @@
  * - A `useEffect` drives a typewriter loop over `HERO_CODE_SNIPPET`; respects `prefers-reduced-motion`
  *   by showing the full snippet immediately and skipping timers.
  * - `buildHighlightedRun` tokenizes the snippet so each character can get a Dracula-style class (`tok_*`).
+ * - Circuit canvas (`useEffect` on `canvasRef`): stationary grid wires are rasterized to an offscreen
+ *   canvas on resize/theme change; pulses composite on top. One 2D context, `requestAnimationFrame`
+ *   pauses while the tab is hidden.
  */
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { personalInfo } from '../../data/portfolio'
@@ -190,6 +193,10 @@ export default function Hero() {
    * - Grid line colours come from `globals.css` (`--hero-grid-line`, `--hero-grid-line-mid`) so
    *   light mode stays visible with a purple→green accent in the middle of each line.
    * - Opacity of the whole layer: `--hero-circuit-opacity` (same file).
+   * - Animated mode: `rebuildGridCache()` redraws static wires offscreen (`gridCache`) on resize /
+   *   theme change (`MutationObserver` on `html[data-theme]`), then each frame draws that bitmap plus
+   *   pulses (`drawImage`). Avoids per-frame gradient spikes on large desktops.
+   * - Visibility: pause the rAF chain when `document.visibilityState !== 'visible'`, restart when visible.
    * - Pulses draw a radial bloom + short strokes on neighbouring grid paths so the glow “runs”
    *   along the wires, not only on the moving segment.
    * - Pulse travel uses elapsed time (px/s), not px/frame, so high-Hz phones keep the same pace as 60Hz.
@@ -197,6 +204,8 @@ export default function Hero() {
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
     /** Respect user accessibility settings: disable animation and render a static grid. */
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -222,6 +231,13 @@ export default function Hero() {
      */
     const MAX_DT_SEC = 0.25
 
+    /**
+     * Static grid raster — rebuilt on resize/theme only. Animated mode composites this each frame so
+     * we don’t allocate dozens of gradients per frame on the wires (heavy GC churn on wide viewports).
+     */
+    const gridCache = document.createElement('canvas')
+    const gridCacheCtx = gridCache.getContext('2d')
+
     /** Cached geometry computed on resize and reused every frame. */
     let cols = 0
     let rows = 0
@@ -244,8 +260,8 @@ export default function Hero() {
     /** React to theme switches (`data-theme` mutations) without remounting the component. */
     const themeObserver = new MutationObserver(() => {
       syncGridFromCss()
-      /** In reduced-motion mode there is no RAF loop, so redraw once immediately. */
       if (reduced) drawStaticGrid()
+      else rebuildGridCache()
     })
     themeObserver.observe(document.documentElement, {
       attributes: true,
@@ -261,6 +277,7 @@ export default function Hero() {
       /** +1 ensures the far edge always has a final line after ceil rounding. */
       cols = Math.ceil(w / CELL) + 1
       rows = Math.ceil(h / CELL) + 1
+      rebuildGridCache()
     }
     resize()
 
@@ -415,11 +432,23 @@ export default function Hero() {
       }
     }
 
+    /** Re-rasterizes the stationary grid wires (pulse layer is drawn on top each frame). */
+    function rebuildGridCache() {
+      if (reduced || !gridCacheCtx || w === 0 || h === 0) return
+      gridCache.width = w
+      gridCache.height = h
+      drawGradientGrid(gridCacheCtx)
+    }
+
     /**
      * @param {number} nowMs — DOMHighResTimeStamp from requestAnimationFrame; used for FPS-independent motion.
      */
     const draw = (nowMs) => {
-      const ctx = canvas.getContext('2d')
+      if (document.visibilityState !== 'visible') {
+        /** Stop chaining rAF while hidden — frees CPU/memory; resume in `visibilitychange`. */
+        rafRef.current = null
+        return
+      }
       if (!ctx || w === 0) {
         /** Retry next frame until canvas has measurable size and 2D context is ready. */
         rafRef.current = requestAnimationFrame(draw)
@@ -434,9 +463,9 @@ export default function Hero() {
       const stepPx = SPEED_PX_PER_SEC * dtSec
       const nearIntersectPx = Math.max(stepPx * 2, 2)
 
-      /** Full-frame redraw for deterministic layering: grid -> glow -> pulse head/trail. */
+      /** Base grid from bitmap (cheap); pulses still use gradients each frame — intentionally smaller cost. */
       ctx.clearRect(0, 0, w, h)
-      drawGradientGrid(ctx)
+      ctx.drawImage(gridCache, 0, 0)
 
       for (const p of pulses) {
         /** Move pulse by elapsed time; speed is `SPEED_PX_PER_SEC`. */
@@ -524,7 +553,6 @@ export default function Hero() {
 
     /** One-shot renderer used only when reduced motion is enabled. */
     function drawStaticGrid() {
-      const ctx = canvas.getContext('2d')
       if (!ctx) return
       syncGridFromCss()
       const cw = canvas.width || canvas.offsetWidth
@@ -541,9 +569,18 @@ export default function Hero() {
     }
 
     if (!reduced) {
-      /** After a tab is hidden, rAF can resume with a huge gap — skip that delta so we don’t spike or stall. */
+      /**
+       * When hidden: cancel rAF entirely. When visible: reset timestep and restart if the loop stalled.
+       * Avoids pointless drawing in background tabs and trims idle memory/CPU churn.
+       */
       const onVisibilityChange = () => {
-        if (document.visibilityState === 'visible') lastFrameTimeMs = null
+        if (document.visibilityState === 'visible') {
+          lastFrameTimeMs = null
+          if (rafRef.current == null) rafRef.current = requestAnimationFrame(draw)
+        } else if (rafRef.current != null) {
+          cancelAnimationFrame(rafRef.current)
+          rafRef.current = null
+        }
       }
       document.addEventListener('visibilitychange', onVisibilityChange)
 

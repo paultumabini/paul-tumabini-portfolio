@@ -4,6 +4,7 @@
  * State:
  * - `open` — Mobile drawer visibility; closing also happens on backdrop click and wide resize.
  * - `scrolled` — Adds glass/blur styles after a small scroll threshold for contrast over the hero.
+ *   `setScrolled` only runs when crossing the threshold (`> 20`), not on every scroll tick.
  * - `activeId` — From `useScrollSpy`; highlights the nav button whose section is uppermost in view.
  *
  * Contract: every `NAV_LINKS[].id` must exist on a `<section id="...">` in the page (see `App.jsx`).
@@ -34,9 +35,13 @@ export default function Navbar() {
   const activeId = useScrollSpy(SECTION_IDS)
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20)
+    const onScroll = () => {
+      const next = window.scrollY > 20
+      setScrolled((prev) => (prev === next ? prev : next))
+    }
     // passive: true tells the browser we won’t call preventDefault — smoother scrolling
     window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 

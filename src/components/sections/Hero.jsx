@@ -8,7 +8,7 @@
  * - `buildHighlightedRun` tokenizes the snippet so each character can get a Dracula-style class (`tok_*`).
  * - Circuit canvas (`useEffect` on `canvasRef`): stationary grid wires are rasterized to an offscreen
  *   canvas on resize/theme change; pulses composite on top. One 2D context, `requestAnimationFrame`
- *   pauses while the tab is hidden.
+ *   pauses while the tab is hidden; backing-store resolution capped on very large displays.
  */
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { personalInfo } from '../../data/portfolio'
@@ -193,10 +193,12 @@ export default function Hero() {
    * - Grid line colours come from `globals.css` (`--hero-grid-line`, `--hero-grid-line-mid`) so
    *   light mode stays visible with a purple→green accent in the middle of each line.
    * - Opacity of the whole layer: `--hero-circuit-opacity` (same file).
-   * - Animated mode: `rebuildGridCache()` redraws static wires offscreen (`gridCache`) on resize /
-   *   theme change (`MutationObserver` on `html[data-theme]`), then each frame draws that bitmap plus
-   *   pulses (`drawImage`). Avoids per-frame gradient spikes on large desktops.
-   * - Visibility: pause the rAF chain when `document.visibilityState !== 'visible'`, restart when visible.
+ * - Animated mode: `rebuildGridCache()` redraws static wires offscreen (`gridCache`) on resize /
+ *   theme change (`MutationObserver` on `html[data-theme]`), then each frame draws that bitmap plus
+ *   pulses (`drawImage`). Avoids per-frame gradient spikes on large desktops.
+ * - Backing-store pixels are capped (~1080p-equivalent total area) on huge monitors so two canvases don’t
+ *   allocate tens of MB each — Chromium/Brave “Aw Snap / Out of Memory” otherwise.
+ * - Visibility: pause the rAF chain when `document.visibilityState !== 'visible'`, restart when visible.
    * - Pulses draw a radial bloom + short strokes on neighbouring grid paths so the glow “runs”
    *   along the wires, not only on the moving segment.
    * - Pulse travel uses elapsed time (px/s), not px/frame, so high-Hz phones keep the same pace as 60Hz.
@@ -217,7 +219,7 @@ export default function Hero() {
     const RGB_H = '108, 99, 255'
     const RGB_V = '0, 217, 163'
     /** Caps branching pulses; lower = calmer hero (reading-first). */
-    const MAX_PULSES = 14
+    const MAX_PULSES = 10
     /**
      * Pixels per second along wires (time-based for consistent pacing on any display refresh rate).
      * 60Hz reference: px/frame ≈ SPEED_PX_PER_SEC / 60 — e.g. 50 ≈ ~0.83 px/frame at 60Hz.
@@ -232,6 +234,12 @@ export default function Hero() {
     const MAX_DT_SEC = 0.25
 
     /**
+     * Upper bound on hero canvas backing-store pixels (`width × height`). Two canvases exist at this size;
+     * uncapped ultrawide resolutions multiplied Chromium/BRAVE GPU allocations (pulse shadows made it worse).
+     */
+    const MAX_CANVAS_AREA_PX = 1920 * 1080
+
+    /**
      * Static grid raster — rebuilt on resize/theme only. Animated mode composites this each frame so
      * we don’t allocate dozens of gradients per frame on the wires (heavy GC churn on wide viewports).
      */
@@ -241,8 +249,12 @@ export default function Hero() {
     /** Cached geometry computed on resize and reused every frame. */
     let cols = 0
     let rows = 0
+    /** Logical/CSS dimensions — pulse paths & grid topology stay in this space. */
     let w = 0
     let h = 0
+    /** Actual bitmap dimensions — capped via `MAX_CANVAS_AREA_PX`, scaled when drawing. */
+    let bw = 0
+    let bh = 0
     /** Edge + centre stops for gradient grid (updated when theme changes). */
     let gridEdge = 'rgba(255,255,255,0.055)'
     let gridMid = 'rgba(108, 99, 255, 0.14)'
@@ -268,15 +280,30 @@ export default function Hero() {
       attributeFilter: ['data-theme'],
     })
 
-    /** Keep canvas backing store synced with rendered size for crisp lines. */
-    const resize = () => {
-      w = canvas.offsetWidth
-      h = canvas.offsetHeight
-      canvas.width = w
-      canvas.height = h
-      /** +1 ensures the far edge always has a final line after ceil rounding. */
+    /** Pixel dimensions of canvas backing store — capped on huge layouts (see `MAX_CANVAS_AREA_PX`). */
+    function syncCanvasDimensions() {
+      const cssW = canvas.offsetWidth
+      const cssH = canvas.offsetHeight
+      w = cssW
+      h = cssH
+      let rw = cssW
+      let rh = cssH
+      if (rw > 0 && rh > 0 && rw * rh > MAX_CANVAS_AREA_PX) {
+        const scale = Math.sqrt(MAX_CANVAS_AREA_PX / (rw * rh))
+        rw = Math.max(1, Math.floor(rw * scale))
+        rh = Math.max(1, Math.floor(rh * scale))
+      }
+      bw = rw
+      bh = rh
+      canvas.width = bw
+      canvas.height = bh
       cols = Math.ceil(w / CELL) + 1
       rows = Math.ceil(h / CELL) + 1
+    }
+
+    /** Keep canvas backing store synced with rendered layout size for crisp lines (within area cap). */
+    const resize = () => {
+      syncCanvasDimensions()
       rebuildGridCache()
     }
     resize()
@@ -344,14 +371,11 @@ export default function Hero() {
         // TUNE: `dist` runs 1..2 — increase upper bound (e.g. 3) to light farther grid rings (costlier)
         for (let dist = 1; dist <= 2; dist++) {
           // TUNE: mesh stroke brightness; base 0.12 / dist — raise for brighter lines
-          const alpha = (0.12 / dist) * strength
+          const alpha = (0.15 / dist) * strength
           ctx.strokeStyle = `rgba(${rgb}, ${alpha})`
           // TUNE: line thickness vs distance from center node
           ctx.lineWidth = 1.5 + dist * 0.4
-          // TUNE: blur per ring — raise 8 / 5 for a softer, wider line glow
-          ctx.shadowBlur = 8 + dist * 5
-          // TUNE: shadow glow (0.5 scales with strength)
-          ctx.shadowColor = `rgba(${rgb}, ${0.5 * strength})`
+          /** Skipped `shadowBlur` — Chromium allocates extra surfaces per stroke; contributed to tab OOM. */
           if (horiz) {
             // TUNE: segment half-length `CELL * 1.25` on every moveTo/lineTo in this bundle
             for (const ox of [-CELL * dist, 0, CELL * dist]) {
@@ -434,10 +458,14 @@ export default function Hero() {
 
     /** Re-rasterizes the stationary grid wires (pulse layer is drawn on top each frame). */
     function rebuildGridCache() {
-      if (reduced || !gridCacheCtx || w === 0 || h === 0) return
-      gridCache.width = w
-      gridCache.height = h
+      if (reduced || !gridCacheCtx || w === 0 || h === 0 || bw === 0 || bh === 0) return
+      gridCache.width = bw
+      gridCache.height = bh
+      gridCacheCtx.setTransform(1, 0, 0, 1, 0, 0)
+      gridCacheCtx.clearRect(0, 0, bw, bh)
+      gridCacheCtx.setTransform(bw / w, 0, 0, bh / h, 0, 0)
       drawGradientGrid(gridCacheCtx)
+      gridCacheCtx.setTransform(1, 0, 0, 1, 0, 0)
     }
 
     /**
@@ -449,7 +477,7 @@ export default function Hero() {
         rafRef.current = null
         return
       }
-      if (!ctx || w === 0) {
+      if (!ctx || w === 0 || bw === 0) {
         /** Retry next frame until canvas has measurable size and 2D context is ready. */
         rafRef.current = requestAnimationFrame(draw)
         return
@@ -464,8 +492,10 @@ export default function Hero() {
       const nearIntersectPx = Math.max(stepPx * 2, 2)
 
       /** Base grid from bitmap (cheap); pulses still use gradients each frame — intentionally smaller cost. */
-      ctx.clearRect(0, 0, w, h)
-      ctx.drawImage(gridCache, 0, 0)
+      ctx.setTransform(1, 0, 0, 1, 0, 0)
+      ctx.clearRect(0, 0, bw, bh)
+      ctx.setTransform(bw / w, 0, 0, bh / h, 0, 0)
+      ctx.drawImage(gridCache, 0, 0, w, h)
 
       for (const p of pulses) {
         /** Move pulse by elapsed time; speed is `SPEED_PX_PER_SEC`. */
@@ -497,11 +527,9 @@ export default function Hero() {
         grad.addColorStop(0.55, `${colorBase}0.5)`)
         grad.addColorStop(1, `${colorBase}0.95)`)
 
-        /** Main trail stroke with soft shadow to simulate emitted light. */
+        /** Trail stroke — gradients only (`shadowBlur` removed; Chromium GPU blow-ups). */
         ctx.strokeStyle = grad
         ctx.lineWidth = 2
-        ctx.shadowColor = p.horiz ? 'rgba(108,99,255,0.75)' : 'rgba(0,217,163,0.75)'
-        ctx.shadowBlur = 14
         ctx.beginPath()
         if (p.horiz) {
           ctx.moveTo(p.x - p.len, p.y)
@@ -511,9 +539,6 @@ export default function Hero() {
           ctx.lineTo(p.x, p.y)
         }
         ctx.stroke()
-        ctx.shadowBlur = 0
-
-        // Leading dot: fixed-size soft halo (radial fill) + small solid core; no time-based pulse.
         const rgbHead = p.horiz ? '139,131,255' : '0,245,190'
         const rgbGlow = p.horiz ? '108,99,255' : '0,217,163'
         const haloR = 17 // outer radius of the head glow in CSS pixels
@@ -531,12 +556,9 @@ export default function Hero() {
         ctx.restore()
 
         ctx.fillStyle = `rgba(${rgbHead},0.98)` // crisp cap on the moving line
-        ctx.shadowColor = `rgba(${rgbGlow},0.92)`
-        ctx.shadowBlur = 24 // soft drop shadow reads as steady bloom, not animation
         ctx.beginPath()
         ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2)
         ctx.fill()
-        ctx.shadowBlur = 0
       }
 
       for (let i = pulses.length - 1; i >= 0; i--) {
@@ -548,6 +570,7 @@ export default function Hero() {
       }
 
       /** Continuous animation loop in motion-enabled mode. */
+      ctx.setTransform(1, 0, 0, 1, 0, 0)
       rafRef.current = requestAnimationFrame(draw)
     }
 
@@ -555,17 +578,13 @@ export default function Hero() {
     function drawStaticGrid() {
       if (!ctx) return
       syncGridFromCss()
-      const cw = canvas.width || canvas.offsetWidth
-      const ch = canvas.height || canvas.offsetHeight
-      if (cw === 0 || ch === 0) return
-      const cCount = Math.ceil(cw / CELL) + 1
-      const rCount = Math.ceil(ch / CELL) + 1
-      ctx.clearRect(0, 0, cw, ch)
-      cols = cCount
-      rows = rCount
-      w = cw
-      h = ch
+      syncCanvasDimensions()
+      if (w === 0 || h === 0 || bw === 0) return
+      ctx.setTransform(1, 0, 0, 1, 0, 0)
+      ctx.clearRect(0, 0, bw, bh)
+      ctx.setTransform(bw / w, 0, 0, bh / h, 0, 0)
       drawGradientGrid(ctx)
+      ctx.setTransform(1, 0, 0, 1, 0, 0)
     }
 
     if (!reduced) {

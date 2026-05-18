@@ -57,7 +57,7 @@ export default function About() {
           {/* Left: narrative */}
           <div className={styles.narrative}>
             <p>
-              I'm Paul — a self-taught developer from the Philippines, now based
+              I'm Paul, a self-taught developer from the Philippines, now based
               in Australia, with a strong focus on{' '}
               <strong>
                 {' '}
@@ -79,7 +79,7 @@ export default function About() {
               On the automation side, I build{' '}
               <span className={styles.tag}>Python scripts</span> and
               <span className={styles.tag}>Google Apps Script</span> web apps
-              that connect spreadsheets to real-world workflows — saving hours
+              that connect spreadsheets to real-world workflows and cut hours
               of manual work.
             </p>
             <p>

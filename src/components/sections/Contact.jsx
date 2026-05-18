@@ -193,7 +193,7 @@ export default function Contact() {
               <h3 className={styles.ctaTitle}>Ready to start a project?</h3>
               <p className={styles.ctaBody}>
                 Whether you need a custom scraping pipeline, a Django backend, a
-                Google Apps Script automation, or a full web application — I'd
+                Google Apps Script automation, or a full web application, I'd
                 love to hear about your project.
               </p>
               <div className={styles.ctaButtons}>

@@ -13,7 +13,7 @@ export const personalInfo = {
   name: 'Paul Tumabini',
   title: 'Full-Stack Developer',
   tagline: 'Web Scraping Specialist & JavaScript Automation Engineer',
-  bio: 'I build robust web scraping pipelines, automation tools, and scalable full-stack web apps using Python and JavaScript — turning raw data into action, from Django backends to Google Apps Script workflows.',
+  bio: 'I build robust web scraping pipelines, automation tools, and scalable full-stack web apps using Python and JavaScript. I turn raw data into action, from Django backends to Google Apps Script workflows.',
   email: 'paultumabini@gmail.com',
   location: 'Australia 🇦🇺',
   linkedin: 'https://www.linkedin.com/in/paultumabini/',
@@ -167,11 +167,11 @@ export const projects = [
     id: 4,
     title: 'Vehicle Lease Calculator',
     description:
-      'Clean HTML/JS lease payment calculator for vehicles. Computes monthly payments from principal, interest, residual value, and term — with live result updates.',
+      'Clean HTML/JS lease payment calculator for vehicles. Computes monthly payments from principal, interest, residual value, and term. Results update live as you change inputs.',
     tags: ['JavaScript', 'HTML5', 'CSS3', 'Finance Logic'],
     category: 'webapp',
     link: 'https://github.com/paultumabini/vehicle-lease-calculator',
-    liveLink: 'https://leasecalculator-black.vercel.app/',
+    liveLink: 'https://vehicle-lease-calculator.vercel.app/',
     featured: true,
     badge: 'Live · Work Project',
   },
@@ -197,7 +197,7 @@ export const projects = [
    */
   {
     id: 7,
-    title: 'TaskaAI — AI Task Manager',
+    title: 'TaskaAI: AI Task Manager',
     description:
       'Full-stack task management app with a Django REST Framework API and React/Vite frontend. Features JWT authentication, a Kanban board with drag-and-drop, analytics dashboard with Chart.js, timeline view, and OpenAI-powered task prioritisation (priority, deadline, tags). Deployed on Render (Django), Vercel (React), and Neon (PostgreSQL).',
     tags: [
@@ -226,7 +226,7 @@ export const projects = [
     id: 6,
     title: 'Password Breach Checker',
     description:
-      'Checks whether a password has been exposed in known data breaches using k-anonymity hashing with HaveIBeenPwned API — without ever sending the plain password.',
+      'Checks whether a password has been exposed in known data breaches using k-anonymity hashing with the HaveIBeenPwned API. The full password is never sent in plain text.',
     tags: ['Python', 'API', 'Security', 'Hashing'],
     category: 'python',
     link: 'https://github.com/paultumabini/password-checker',
@@ -250,20 +250,20 @@ export const experiences = [
     companyUrl: 'https://autoverify.com/',
     location: 'Canada',
     workArrangement: 'Remote',
-    companyNote: 'formerly AIM Experts — acquired Sep 2021',
-    period: 'AuG 2017 - Aug 2024',
+    companyNote: 'formerly AIM Experts (acquired Sep 2021)',
+    period: 'May 2017 - Aug 2024',
     periodStart: 'May 2017',
     type: 'Full-time',
     current: false,
     summary:
-      'Owned the full data and automation layer for vehicle data operations — building production web scrapers, full-stack Django pipelines, Google Apps Script web apps, and internal tooling that kept vehicle data clean, structured, and flowing across systems. Originally joined as AIM Experts; the company was acquired by AutoVerify in September 2021 and the role continued under the new name through August 2024.',
+      'Owned the full data and automation layer for vehicle data operations: production web scrapers, full-stack Django pipelines, Google Apps Script web apps, and internal tooling that kept vehicle data clean, structured, and flowing across systems. Originally joined as AIM Experts; the company was acquired by AutoVerify in September 2021 and the role continued under the new name through August 2024.',
     highlights: [
-      'Designed and maintained full-stack web scraping applications targeting static sites, dynamic content, and APIs — with a Django backend that cleaned and normalised raw data before pushing it to an FTP server for downstream ingestion.',
-      'Built the VDP URLs Parser — a Python automation tool that parsed, transformed, and validated vehicle detail page feeds, then exported clean data directly to an FTP server for CMS ingestion.',
-      'Developed internal automation scripts and Google Apps Script web apps — including Task UI and Vehicle Data Monitor — replacing manual workflows and reducing operational overhead across teams.',
+      'Designed and maintained full-stack web scraping applications targeting static sites, dynamic content, and APIs. A Django backend cleaned and normalised raw data before pushing it to an FTP server for downstream ingestion.',
+      'Built the VDP URLs Parser, a Python automation tool that parsed, transformed, and validated vehicle detail page feeds, then exported clean data directly to an FTP server for CMS ingestion.',
+      'Developed internal automation scripts and Google Apps Script web apps (Task UI, Vehicle Data Monitor) that replaced manual workflows and reduced operational overhead across teams.',
       'Designed and built a simple lease calculator web app used by internal teams to generate accurate weekly, bi-weekly, and monthly lease payment estimates.',
-      'Owned vehicle dataset quality across all inventory records — continuously auditing, cleaning, and reconciling data to ensure accuracy for sales, operations, and reporting.',
-      'Managed OEM rebates, incentives, and lease programme data end-to-end — keeping records current and surfacing timely updates to internal stakeholders.',
+      'Owned vehicle dataset quality across all inventory records by continuously auditing, cleaning, and reconciling data so sales, operations, and reporting stayed accurate.',
+      'Managed OEM rebates, incentives, and lease programme data end-to-end, keeping records current and surfacing timely updates to internal stakeholders.',
     ],
     tags: [
       'Python',
@@ -287,7 +287,7 @@ export const experiences = [
       },
       {
         label: 'Vehicle Lease Calculator',
-        url: 'https://leasecalculator-black.vercel.app/',
+        url: 'https://vehicle-lease-calculator.vercel.app/',
       },
     ],
     workProjects: [

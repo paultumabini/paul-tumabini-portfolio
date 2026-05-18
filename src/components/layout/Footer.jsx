@@ -17,7 +17,7 @@ export default function Footer() {
           <span className={styles.dot} />
         </div>
         <p className={styles.copy}>
-          © {year} Paul Tumabini — Built with React & Vite
+          © {year} Paul Tumabini · Built with React & Vite
         </p>
         <div className={styles.links}>
           <a href={personalInfo.github} target="_blank" rel="noopener noreferrer">GitHub</a>

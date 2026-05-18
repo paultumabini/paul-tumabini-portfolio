@@ -179,7 +179,7 @@ function ProjectCard({ project, index }) {
         <div className={styles.credsPill}>
           <KeyIcon />
           <span>
-            Demo — user: <code>{project.credentials.user}</code> / pass:{' '}
+            Demo: user <code>{project.credentials.user}</code> / pass{' '}
             <code>{project.credentials.pass}</code>
           </span>
         </div>
